@@ -3,6 +3,7 @@ package com.techelevator.tenmo.controller;
 import javax.validation.Valid;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.core.Authentication;
@@ -20,9 +21,9 @@ import com.techelevator.tenmo.model.User;
 import com.techelevator.tenmo.security.jwt.TokenProvider;
 import org.springframework.web.server.ResponseStatusException;
 
-/**
- * Controller to authenticate users.
- */
+import java.math.BigDecimal;
+import java.security.Principal;
+
 @RestController
 public class AuthenticationController {
 
