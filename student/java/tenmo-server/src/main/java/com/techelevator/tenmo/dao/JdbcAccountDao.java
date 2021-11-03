@@ -18,14 +18,14 @@ public class JdbcAccountDao implements AccountDao{
     }
 
     @Override
-    public long findAccountIdByUserId(long userId) {
-        String sql = "SELECT account_id FROM account WHERE user_id = ?;";
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, userId);
-        if (rowSet.next()){
-            long id = mapRowToAccount(rowSet).getAccountId();
+    public long findAccountIdByUserId(long user_id) {
+        String sql = "SELECT account_id FROM accounts WHERE user_id = ?;";
+        /*SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, user_id);*/
+        Long id = jdbcTemplate.queryForObject(sql, Long.class, user_id);
+        if (id != null){
             return id;
         }
-        throw new UsernameNotFoundException("User " + userId + " was not found.");
+        throw new UsernameNotFoundException("User " + user_id + " was not found.");
     }
 
     @Override
@@ -41,12 +41,12 @@ public class JdbcAccountDao implements AccountDao{
         throw new UsernameNotFoundException("User " + username + " was not found.");
     }
 
-    private Account mapRowToAccount(SqlRowSet rowSet) {
+    /*private Account mapRowToAccount(SqlRowSet rowSet) {
         Account account = new Account();
-        account.setAccountId(rowSet.getLong("account_id"));
-        account.setUserId(rowSet.getLong("user_id"));
+        account.setAccount_id(rowSet.getLong("account_id"));
+        account.setUser_id(rowSet.getLong("user_id"));
         account.setBalance(rowSet.getBigDecimal("balance"));
         return account;
-    }
+    }*/
     //TODO make an update balancce w sql, param for id and amt/add/subtract
 }

@@ -20,21 +20,21 @@ public class JdbcTransferDao  implements TransferDao{
 
     @Override
     public Transfer create(long transferTypeId, long transferStatusId, long accountFrom, long accountTo, BigDecimal amount) {
-        String sql = "INSERT INTO transfer (transfer_type_id, transfer_status_id, account_from, account_to, amount) VALUES(?,?,?,?,?) RETURNING transfer_id;";
+        String sql = "INSERT INTO transfers (transfer_type_id, transfer_status_id, account_from, account_to, amount) VALUES(?,?,?,?,?) RETURNING transfer_id;";
         long transferId =  jdbcTemplate.queryForObject(sql, long.class, transferTypeId, transferStatusId, accountFrom, accountTo, amount);
         return new Transfer(transferId);
     }
 
     // JOINS to get user_ids associated with accounts to and from for transfer (transfer, account)
     // update balance based on
-    @Override
-    public void sendTransfer(Long userIdFrom, Long userIdTo, BigDecimal amountToSend) {
+   @Override
+    public Transfer sendTransfer(Transfer transfer) {
         String sql = "BEGIN TRANSACTION; " +
-                "UPDATE account SET balance = balance - ? WHERE user_id = ?; " +
-                "UPDATE account SET balance = balance + ? WHERE user_id = ?; " +
-                "COMMIT";
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, amountToSend, userIdFrom, amountToSend, userIdTo);
-        mapRowToTransfer(rowSet);
+                "UPDATE accounts SET balance = balance - ? WHERE account_id = ?; " +
+                "UPDATE accounts SET balance = balance + ? WHERE account_id = ?; " +
+                "COMMIT;";
+        Transfer rowSet = jdbcTemplate.queryForObject(sql, Transfer.class, transfer.getAmount(), transfer.getAccountFromId(), transfer.getAmount(), transfer.getAccountToId());
+        return rowSet;
     }
 
     @Override
