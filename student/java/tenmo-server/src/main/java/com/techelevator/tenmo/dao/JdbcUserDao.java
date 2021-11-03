@@ -79,17 +79,6 @@ public class JdbcUserDao implements UserDao {
         return true;
     }
 
-    @Override
-    public BigDecimal getBalance(String username) throws UsernameNotFoundException {
-        String sql = "SELECT balance FROM accounts WHERE user_id = ?;";
-        BigDecimal userbalance = jdbcTemplate.queryForObject(sql, BigDecimal.class, findIdByUsername(username));
-        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, findIdByUsername(username));
-        if (rowSet.next()){
-            return userbalance;
-        }
-        throw new UsernameNotFoundException("User " + username + " was not found.");
-    }
-
     private User mapRowToUser(SqlRowSet rs) {
         User user = new User();
         user.setId(rs.getLong("user_id"));
