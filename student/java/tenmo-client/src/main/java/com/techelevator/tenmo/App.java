@@ -12,6 +12,7 @@ import com.techelevator.view.ConsoleService;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
+import java.util.Scanner;
 
 public class App {
 
@@ -54,7 +55,7 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		mainMenu();
 	}
 
-	private void mainMenu() {
+	private void mainMenu(){
 		while(true) {
 			String choice = (String)console.getChoiceFromOptions(MAIN_MENU_OPTIONS);
 			if(MAIN_MENU_OPTION_VIEW_BALANCE.equals(choice)) {
@@ -83,7 +84,7 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		}
 		try{
 			BigDecimal balance = accountService.getBalance();
-			System.out.format("current balance is $%s%n", NumberFormat.getCurrencyInstance().format(balance));
+			System.out.format("current balance is %s%n", NumberFormat.getCurrencyInstance().format(balance));
 		} catch (AccountServiceException e) {
 			System.out.println("Account not found");
 		}
@@ -92,17 +93,34 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 
 	private void viewTransferHistory() {
 		// TODO Auto-generated method stub
-		Transfer[] transfers = accountService.getTransfersByUser(currentUser.getUser().getId());
+		Transfer[] transfers = accountService.getTransfersByUser();
+		for(Transfer transfer : transfers){
+			System.out.println(transfer.toString());
+		}
 	}
 
 	private void viewPendingRequests() {
 		// TODO Auto-generated method stub
-		
+		Transfer[] transfers = accountService.getTransfersByUser();
+		for(Transfer transfer : transfers) {
+			if (transfer.getStatusId() == 1) {
+				System.out.println(transfer.toString());
+			}
+		}
 	}
 
-	private void sendBucks() {
+	private void sendBucks() throws AccountServiceException {
 		// TODO Auto-generated method stub
-		
+		Transfer[] transfers = accountService.getTransfersByUser();
+		if (transfers != null){
+			Scanner scanner = new Scanner(System.in);
+			System.out.println("Who do you want to send to?");
+			String recipient = scanner.nextLine();
+			long recipientId = accountService.findIdByUsername(recipient);
+			if(recipientId > 0){
+				BigDecimal balance = accountService.getBalance();
+			}
+		}
 	}
 
 	private void requestBucks() {
