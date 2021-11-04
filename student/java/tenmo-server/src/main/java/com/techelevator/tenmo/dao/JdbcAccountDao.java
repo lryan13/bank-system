@@ -45,6 +45,7 @@ public class JdbcAccountDao implements AccountDao{
         throw new UsernameNotFoundException("User " + username + " was not found.");
     }
 
+    //TODO refactor with transferId, remove subqueries, combine methods
     @Override
     public void updateSenderAccount(Long account_id) {
         jdbcTemplate.execute("BEGIN TRANSACTION");

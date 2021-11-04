@@ -1,10 +1,17 @@
 package com.techelevator.tenmo;
 
+import com.techelevator.tenmo.model.Account;
 import com.techelevator.tenmo.model.AuthenticatedUser;
+import com.techelevator.tenmo.model.Transfer;
 import com.techelevator.tenmo.model.UserCredentials;
+import com.techelevator.tenmo.services.AccountService;
+import com.techelevator.tenmo.services.AccountServiceException;
 import com.techelevator.tenmo.services.AuthenticationService;
 import com.techelevator.tenmo.services.AuthenticationServiceException;
 import com.techelevator.view.ConsoleService;
+
+import java.math.BigDecimal;
+import java.text.NumberFormat;
 
 public class App {
 
@@ -25,15 +32,17 @@ private static final String API_BASE_URL = "http://localhost:8080/";
     private AuthenticatedUser currentUser;
     private ConsoleService console;
     private AuthenticationService authenticationService;
+    private AccountService accountService;
 
     public static void main(String[] args) {
-    	App app = new App(new ConsoleService(System.in, System.out), new AuthenticationService(API_BASE_URL));
+    	App app = new App(new ConsoleService(System.in, System.out), new AuthenticationService(API_BASE_URL), new AccountService());
     	app.run();
     }
 
-    public App(ConsoleService console, AuthenticationService authenticationService) {
+    public App(ConsoleService console, AuthenticationService authenticationService, AccountService accountService) {
 		this.console = console;
 		this.authenticationService = authenticationService;
+		this.accountService = accountService;
 	}
 
 	public void run() {
@@ -68,13 +77,22 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void viewCurrentBalance() {
-		// TODO Auto-generated method stub
+		if(currentUser == null) {
+			System.out.println("please log in to see your balance");
+			return;
+		}
+		try{
+			BigDecimal balance = accountService.getBalance();
+			System.out.format("current balance is $%s%n", NumberFormat.getCurrencyInstance().format(balance));
+		} catch (AccountServiceException e) {
+			System.out.println("Account not found");
+		}
 		
 	}
 
 	private void viewTransferHistory() {
 		// TODO Auto-generated method stub
-		
+		Transfer[] transfers = accountService.getTransfersByUser(currentUser.getUser().getId());
 	}
 
 	private void viewPendingRequests() {
@@ -139,6 +157,7 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 			UserCredentials credentials = collectUserCredentials();
 		    try {
 				currentUser = authenticationService.login(credentials);
+				accountService.setAuthenticatedUser(currentUser);
 			} catch (AuthenticationServiceException e) {
 				System.out.println("LOGIN ERROR: "+e.getMessage());
 				System.out.println("Please attempt to login again.");
