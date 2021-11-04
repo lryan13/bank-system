@@ -7,6 +7,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -25,22 +26,31 @@ public class JdbcTransferDao  implements TransferDao{
         return new Transfer(transferId);
     }
 
-    // JOINS to get user_ids associated with accounts to and from for transfer (transfer, account)
-    // update balance based on
-   @Override
-    public Transfer sendTransfer(Transfer transfer) {
-        String sql = "BEGIN TRANSACTION; " +
-                "UPDATE accounts SET balance = balance - ? WHERE account_id = ?; " +
-                "UPDATE accounts SET balance = balance + ? WHERE account_id = ?; " +
-                "COMMIT;";
-        Transfer rowSet = jdbcTemplate.queryForObject(sql, Transfer.class, transfer.getAmount(), transfer.getAccountFromId(), transfer.getAmount(), transfer.getAccountToId());
-        return rowSet;
+    @Override
+    public List<Transfer> getTransfersByUsername(String username) {
+        List<Transfer> transfers = new ArrayList<>();
+        String sql = "SELECT * FROM transfers " +
+                "JOIN accounts ON accounts.account_id = transfers.account_from " +
+                "JOIN users ON users.user_id = accounts.user_id " +
+                "WHERE username = ?;";
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, username);
+        while(rowSet.next()){
+            transfers.add(mapRowToTransfer(rowSet));
+        }
+        return transfers;
     }
 
     @Override
-    public List<Transfer> getTransfers(String username) {
-        return null;
+    public Transfer getTransferByTransferId(Long transferId) {
+        String sql = "SELECT * FROM transfers WHERE transfer_id = ?";
+        SqlRowSet rowset = jdbcTemplate.queryForRowSet(sql, transferId);
+        if (rowset.next()) {
+            return mapRowToTransfer(rowset);
+        } else {
+            return null;
+        }
     }
+
 
     private Transfer mapRowToTransfer(SqlRowSet rowSet) {
         Transfer transfer = new Transfer();

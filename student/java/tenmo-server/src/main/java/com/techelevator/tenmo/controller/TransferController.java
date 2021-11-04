@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.List;
 
 @RestController
 @PreAuthorize("isAuthenticated()")
@@ -29,21 +30,32 @@ public class TransferController {
     }
 
     @RequestMapping(path = "/new", method = RequestMethod.POST)
-    public void create(Principal principal, @RequestBody Transfer transfer) {
+    public void createAndUpdate(Principal principal, @RequestBody Transfer transfer) {
         String user = principal.getName();
         long userId = userDao.findIdByUsername(user);
         long accountId = accountDao.findAccountIdByUserId(userId);
         System.out.println("Account ID is" + accountId);
         System.out.println("User is " + user);
-        transferDao.create(2, 2, accountId, transfer.getAccountToId(), transfer.getAmount());
-
+        if(transfer.getAmount().compareTo(new BigDecimal(0)) <= 0){
+            System.out.println("can not send a negative or 0 amount");
+        }
+        else if(transfer.getAmount().compareTo(accountDao.getBalance(user)) <= 0 || accountDao.getBalance(user).compareTo(new BigDecimal(0)) <= 0) {
+            transferDao.create(2, 2, accountId, transfer.getAccountToId(), transfer.getAmount());
+            transfer.setAccountToId(transfer.getAccountToId());
+            accountDao.updateSenderAccount(accountId);
+            accountDao.updateRecipientAccount(transfer.getAccountToId());
+        }
+        else System.out.println("not enough money");
     }
-    //POST transfer to transfer table, insterting all table column values
 
-    /*@RequestMapping(value = "/send/{userToId}/{amount}", method = RequestMethod.PUT)
-    public void sendTransfer(Principal principal, @RequestParam Long userToId, @RequestParam BigDecimal amount) {
-        Long userFrom = (long)userDao.findIdByUsername(principal.getName());
-        transferDao.sendTransfer(userFrom, userToId, amount);
-    }*/
+    @RequestMapping(path = "/list", method = RequestMethod.GET)
+    public List<Transfer> transfers(Principal principal) {
+        return transferDao.getTransfersByUsername(principal.getName());
+    }
+
+    @RequestMapping(path = "/get/{transferId}", method = RequestMethod.GET)
+    public Transfer transfer(@PathVariable Long transferId) {
+        return transferDao.getTransferByTransferId(transferId);
+    }
 
 }

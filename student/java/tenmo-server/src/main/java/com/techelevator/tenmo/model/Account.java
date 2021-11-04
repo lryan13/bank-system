@@ -17,6 +17,8 @@ public class Account {
     public Account() {
     }
 
+    public Account(long accountId){}
+
     public Long getAccount_id() {
         return account_id;
     }
