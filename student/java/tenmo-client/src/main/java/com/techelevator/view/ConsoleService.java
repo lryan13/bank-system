@@ -1,9 +1,15 @@
 package com.techelevator.view;
 
 
+import com.techelevator.tenmo.model.User;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.RestTemplate;
+
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.PrintWriter;
+import java.math.BigDecimal;
 import java.util.Scanner;
 
 public class ConsoleService {
@@ -73,4 +79,6 @@ public class ConsoleService {
 		} while(result == null);
 		return result;
 	}
+
+
 }

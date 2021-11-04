@@ -52,12 +52,22 @@ public class AccountService {
         if (this.user == null) {
             throw new AccountServiceException();
         }
-        String path = this.baseUrl + "account/user/{username}";
+        String path = this.baseUrl + "account/user/" + username;
         ResponseEntity<Long> response = restTemplate.exchange(path, HttpMethod.GET, makeAuthEntity(), long.class);
         return response.getBody();
     }
 
-    public boolean sendTransfer(Transfer transfer){
+    public long findAccountIdByUserId(Long userId) throws AccountServiceException {
+        if (this.user == null) {
+            throw new AccountServiceException();
+        }
+        String path = this.baseUrl + "account/userId/" + userId;
+        ResponseEntity<Long> response = restTemplate.exchange(path, HttpMethod.GET, makeAuthEntity(), long.class);
+        return response.getBody();
+    }
+
+
+    public boolean createTransfer(Transfer transfer){
         boolean success = false;
         try {
             restTemplate.put(this.baseUrl + "transfer/new", makeTransferEntity(transfer));
@@ -67,6 +77,16 @@ public class AccountService {
         }
         return success;
     }
+
+    public void printRecipients() {
+        String path = this.baseUrl + "account/user/list";
+        ResponseEntity<User[]> response = restTemplate.exchange(path, HttpMethod.GET, makeAuthEntity(), User[].class);
+        for(User user: response.getBody()) {
+            System.out.println("Username: " + user.getUsername() + " User Id: " + user.getId());
+        }
+    }
+
+
 
     private HttpEntity<Transfer> makeTransferEntity(Transfer transfer){
         HttpHeaders headers = new HttpHeaders();

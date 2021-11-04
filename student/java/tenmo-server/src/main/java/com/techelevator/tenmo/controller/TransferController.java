@@ -48,7 +48,7 @@ public class TransferController {
         else System.out.println("not enough money");
     }
 
-    
+
     @RequestMapping(path = "/list", method = RequestMethod.GET)
     public List<Transfer> transfers(Principal principal) {
         return transferDao.getTransfersByUsername(principal.getName());

@@ -2,6 +2,7 @@ package com.techelevator.tenmo.controller;
 
 import com.techelevator.tenmo.dao.AccountDao;
 import com.techelevator.tenmo.dao.UserDao;
+import com.techelevator.tenmo.model.User;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -10,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.math.BigDecimal;
 import java.security.Principal;
+import java.util.List;
 
 @RestController
 @PreAuthorize("isAuthenticated()")
@@ -32,5 +34,15 @@ public class AccountController {
     @RequestMapping(path = "/user/{username}", method = RequestMethod.GET)
     public int userId(@PathVariable String username) {
         return userDao.findIdByUsername(username);
+    }
+
+    @RequestMapping(path = "/user/list", method = RequestMethod.GET)
+    public List<User> allUsers() {
+        return userDao.findAll();
+    }
+
+    @RequestMapping(path = "/userId/{userId}", method = RequestMethod.GET)
+    public long accountId(@PathVariable int userId) {
+        return accountDao.findAccountIdByUserId(userId);
     }
 }

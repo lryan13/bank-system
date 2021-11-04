@@ -109,18 +109,33 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		}
 	}
 
-	private void sendBucks() throws AccountServiceException {
+	private void sendBucks()  {
 		// TODO Auto-generated method stub
-		Transfer[] transfers = accountService.getTransfersByUser();
-		if (transfers != null){
-			Scanner scanner = new Scanner(System.in);
-			System.out.println("Who do you want to send to?");
-			String recipient = scanner.nextLine();
-			long recipientId = accountService.findIdByUsername(recipient);
-			if(recipientId > 0){
-				BigDecimal balance = accountService.getBalance();
-			}
+
+		try{
+
+				Scanner scanner = new Scanner(System.in);
+				System.out.println("Who do you want to send to?");
+				accountService.printRecipients();
+				String recipient = scanner.nextLine();
+				long recipientId = accountService.findIdByUsername(recipient);
+				long recipientAccountId = accountService.findAccountIdByUserId(recipientId);
+				System.out.println("Enter amount of money to send: ");
+				int amountToSend = Integer.parseInt(scanner.nextLine());
+				BigDecimal amount = new BigDecimal(amountToSend);
+				Transfer transfer = new Transfer();
+				transfer.setTypeId(2L);
+				transfer.setStatusId(2L);
+				transfer.setAccountFromId(accountService.findAccountIdByUserId(currentUser.getUser().getId()));
+				transfer.setAccountToId(recipientAccountId);
+				transfer.setAmount(amount);
+				accountService.createTransfer(transfer);
+
+
+		} catch (AccountServiceException e) {
+			System.out.println("Account service exception");
 		}
+
 	}
 
 	private void requestBucks() {
