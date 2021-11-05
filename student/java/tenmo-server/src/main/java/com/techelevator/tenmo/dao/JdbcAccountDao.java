@@ -30,7 +30,11 @@ public class JdbcAccountDao implements AccountDao{
         if (id != null){
             return id;
         }
-        throw new UsernameNotFoundException("User " + user_id + " was not found.");
+        else{
+
+            throw new UsernameNotFoundException("User " + user_id + " was not found.");
+        }
+
     }
 
     @Override
