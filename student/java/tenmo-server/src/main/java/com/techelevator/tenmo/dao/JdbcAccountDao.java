@@ -11,14 +11,15 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.sql.DataSource;
 import java.math.BigDecimal;
 
 @Component
 public class JdbcAccountDao implements AccountDao{
     private JdbcTemplate jdbcTemplate;
 
-    public JdbcAccountDao(JdbcTemplate jdbcTemplate){
-        this.jdbcTemplate = jdbcTemplate;
+    public JdbcAccountDao(DataSource dataSource){
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
     @Override

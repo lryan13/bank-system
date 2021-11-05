@@ -44,10 +44,6 @@ public class AccountService {
         return transfers;
     }
 
-    public Transfer[] getPendingTransfers() {
-        return null;
-    }
-
     public long findIdByUsername(String username) throws AccountServiceException {
         if (this.user == null) {
             throw new AccountServiceException();
@@ -70,12 +66,21 @@ public class AccountService {
     public boolean createTransfer(Transfer transfer){
         boolean success = false;
         try {
-            restTemplate.put(this.baseUrl + "transfer/new", makeTransferEntity(transfer));
+            restTemplate.exchange(this.baseUrl + "transfer/new", HttpMethod.POST, makeTransferEntity(transfer), Void.class);
             success = true;
         } catch (RestClientResponseException | ResourceAccessException e) {
-            System.out.println("error found");
+            System.out.println(e.getMessage());
         }
         return success;
+    }
+
+    public Transfer getTransferById(long transferId) throws AccountServiceException {
+        if (this.user == null) {
+            throw new AccountServiceException();
+        }
+        String path = this.baseUrl + "transfer/get/" + transferId;
+        ResponseEntity<Transfer> response = restTemplate.exchange(path, HttpMethod.GET, makeAuthEntity(), Transfer.class);
+        return response.getBody();
     }
 
     public void printRecipients() {

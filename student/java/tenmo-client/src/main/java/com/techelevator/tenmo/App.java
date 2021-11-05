@@ -27,8 +27,9 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	private static final String MAIN_MENU_OPTION_VIEW_PAST_TRANSFERS = "View your past transfers";
 	private static final String MAIN_MENU_OPTION_REQUEST_BUCKS = "Request TE bucks";
 	private static final String MAIN_MENU_OPTION_VIEW_PENDING_REQUESTS = "View your pending requests";
+	private static final String MAIN_MENU_OPTION_VIEW_TRANSFER_BY_ID = "View details of a transfer by it's ID";
 	private static final String MAIN_MENU_OPTION_LOGIN = "Login as different user";
-	private static final String[] MAIN_MENU_OPTIONS = { MAIN_MENU_OPTION_VIEW_BALANCE, MAIN_MENU_OPTION_SEND_BUCKS, MAIN_MENU_OPTION_VIEW_PAST_TRANSFERS, MAIN_MENU_OPTION_REQUEST_BUCKS, MAIN_MENU_OPTION_VIEW_PENDING_REQUESTS, MAIN_MENU_OPTION_LOGIN, MENU_OPTION_EXIT };
+	private static final String[] MAIN_MENU_OPTIONS = { MAIN_MENU_OPTION_VIEW_BALANCE, MAIN_MENU_OPTION_SEND_BUCKS, MAIN_MENU_OPTION_VIEW_PAST_TRANSFERS, MAIN_MENU_OPTION_REQUEST_BUCKS, MAIN_MENU_OPTION_VIEW_PENDING_REQUESTS, MAIN_MENU_OPTION_VIEW_TRANSFER_BY_ID, MAIN_MENU_OPTION_LOGIN, MENU_OPTION_EXIT };
 	
     private AuthenticatedUser currentUser;
     private ConsoleService console;
@@ -68,6 +69,8 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 				sendBucks();
 			} else if(MAIN_MENU_OPTION_REQUEST_BUCKS.equals(choice)) {
 				requestBucks();
+			} else if(MAIN_MENU_OPTION_VIEW_TRANSFER_BY_ID.equals(choice)) {
+				viewTransferById();
 			} else if(MAIN_MENU_OPTION_LOGIN.equals(choice)) {
 				login();
 			} else {
@@ -103,7 +106,7 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		// TODO Auto-generated method stub
 		Transfer[] transfers = accountService.getTransfersByUser();
 		for(Transfer transfer : transfers) {
-			if (transfer.getStatusId() == 1) {
+			if (transfer.getTransferStatusId() == 1L) {
 				System.out.println(transfer.toString());
 			}
 		}
@@ -124,8 +127,8 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 				int amountToSend = Integer.parseInt(scanner.nextLine());
 				BigDecimal amount = new BigDecimal(amountToSend);
 				Transfer transfer = new Transfer();
-				transfer.setTypeId(2L);
-				transfer.setStatusId(2L);
+				transfer.setTransferTypeId(2L); //TODO refactor and make a variable
+				transfer.setTransferStatusId(2L);
 				transfer.setAccountFromId(accountService.findAccountIdByUserId(currentUser.getUser().getId()));
 				transfer.setAccountToId(recipientAccountId);
 				transfer.setAmount(amount);
@@ -141,6 +144,20 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	private void requestBucks() {
 		// TODO Auto-generated method stub
 		
+	}
+
+	private void viewTransferById() {
+		Scanner scanner = new Scanner(System.in);
+		System.out.println("Enter transfer ID: ");
+		long transferId = Long.parseLong(scanner.nextLine());
+		try {
+			Transfer transfer = accountService.getTransferById(transferId);
+			if(transfer != null) {
+				System.out.println(transfer.toString());
+			} else System.out.println("transfer not found");
+		} catch (AccountServiceException e) {
+			System.out.println("error found");
+		}
 	}
 	
 	private void exitProgram() {

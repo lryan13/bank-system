@@ -3,37 +3,35 @@ package com.techelevator.tenmo.model;
 import java.math.BigDecimal;
 
 public class Transfer {
-    private Long id;
-    private Long typeId;
-    private Long statusId;
+    private Long transferId;
+    private Long transferTypeId;
+    private Long transferStatusId;
     private Long accountFromId;
     private Long accountToId;
     private BigDecimal amount;
 
-    public Long getId() {
-        return id;
+    public Long getTransferId() {
+        return transferId;
     }
 
-    public void setId(Long id) {
-        this.id = id;
+    public void setTransferId(Long transferId) {
+        this.transferId = transferId;
     }
 
-    public Long getTypeId() {
-        return typeId;
+    public Long getTransferTypeId() {
+        return transferTypeId;
     }
 
-
-
-    public void setTypeId(Long typeId) {
-        this.typeId = typeId;
+    public void setTransferTypeId(Long transferTypeId) {
+        this.transferTypeId = transferTypeId;
     }
 
-    public Long getStatusId() {
-        return statusId;
+    public Long getTransferStatusId() {
+        return transferStatusId;
     }
 
-    public void setStatusId(Long statusId) {
-        this.statusId = statusId;
+    public void setTransferStatusId(Long transferStatusId) {
+        this.transferStatusId = transferStatusId;
     }
 
     public Long getAccountFromId() {
@@ -63,9 +61,9 @@ public class Transfer {
     @Override
     public String toString() {
         return "Transfer{" +
-                "id=" + id +
-                ", typeId=" + typeId +
-                ", statusId=" + statusId +
+                "id=" + transferId +
+                ", typeId=" + transferTypeId +
+                ", statusId=" + transferStatusId +
                 ", accountFromId=" + accountFromId +
                 ", accountToId=" + accountToId +
                 ", amount=" + amount +
