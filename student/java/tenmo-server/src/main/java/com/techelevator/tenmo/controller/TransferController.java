@@ -70,7 +70,7 @@ public class TransferController {
         transferDao.reject(transferId);
     }
 
-    @RequestMapping(path = "/reject/{transferId}", method = RequestMethod.POST)
+    @RequestMapping(path = "/approve/{transferId}", method = RequestMethod.POST)
     public void approve(@PathVariable long transferId) {
         transferDao.approve(transferId);
     }
