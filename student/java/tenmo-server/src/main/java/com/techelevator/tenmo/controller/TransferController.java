@@ -23,29 +23,56 @@ public class TransferController {
     private UserDao userDao;
     private AccountDao accountDao;
 
+    private final long pending = 1;
+    private final long approved = 2;
+
+    private final long request = 1;
+    private final long send = 2;
+
     public TransferController(TransferDao transferDao, UserDao userDao, AccountDao accountDao) {
         this.transferDao = transferDao;
         this.userDao = userDao;
         this.accountDao = accountDao;
     }
 
-    @RequestMapping(path = "/new", method = RequestMethod.POST)
+    @RequestMapping(path = "/send", method = RequestMethod.POST)
     public void createAndUpdate(Principal principal, @RequestBody Transfer transfer) {
         String user = principal.getName();
         long userId = userDao.findIdByUsername(user);
         long accountId = accountDao.findAccountIdByUserId(userId);
-        System.out.println("Account ID is" + accountId);
-        System.out.println("User is " + user);
         if(transfer.getAmount().compareTo(new BigDecimal(0)) <= 0){
             System.out.println("can not send a negative or 0 amount");
         }
-        else if(transfer.getAmount().compareTo(accountDao.getBalance(user)) <= 0 || accountDao.getBalance(user).compareTo(new BigDecimal(0)) <= 0) {
-            transferDao.create(2, 2, accountId, transfer.getAccountToId(), transfer.getAmount());
+        else if(transfer.getAmount().compareTo(accountDao.getBalance(user)) <= 0 || accountDao.getBalance(user).compareTo(new BigDecimal(0)) >= 0) {
+            transferDao.create(send, approved, accountId, transfer.getAccountToId(), transfer.getAmount());
             transfer.setAccountToId(transfer.getAccountToId());
             accountDao.updateSenderAccount(accountId);
             accountDao.updateRecipientAccount(transfer.getAccountToId());
         }
         else System.out.println("not enough money");
+    }
+
+    @RequestMapping(path = "/request", method = RequestMethod.POST)
+    public void request(Principal principal, @RequestBody Transfer transfer){
+        String user = principal.getName();
+        long userId = userDao.findIdByUsername(user);
+        long accountId = accountDao.findAccountIdByUserId(userId);
+        if(transfer.getAmount().compareTo(new BigDecimal(0)) <= 0){
+            System.out.println("can not request a negative or 0 amount");
+        }
+        else {
+            transferDao.create(request, pending, accountId, transfer.getAccountToId(), transfer.getAmount());
+        }
+    }
+
+    @RequestMapping(path = "/reject/{transferId}", method = RequestMethod.POST)
+    public void reject(@PathVariable long transferId) {
+        transferDao.reject(transferId);
+    }
+
+    @RequestMapping(path = "/reject/{transferId}", method = RequestMethod.POST)
+    public void approve(@PathVariable long transferId) {
+        transferDao.approve(transferId);
     }
 
 

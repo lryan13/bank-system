@@ -73,4 +73,16 @@ public class Transfer {
     public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
+
+    @Override
+    public String toString() {
+        return "Transfer{" +
+                "transferId=" + transferId +
+                ", transferTypeId=" + transferTypeId +
+                ", transferStatusId=" + transferStatusId +
+                ", accountFromId=" + accountFromId +
+                ", accountToId=" + accountToId +
+                ", amount=" + amount +
+                '}';
+    }
 }

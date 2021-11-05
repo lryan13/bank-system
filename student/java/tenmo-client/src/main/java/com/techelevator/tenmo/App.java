@@ -28,13 +28,21 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	private static final String MAIN_MENU_OPTION_REQUEST_BUCKS = "Request TE bucks";
 	private static final String MAIN_MENU_OPTION_VIEW_PENDING_REQUESTS = "View your pending requests";
 	private static final String MAIN_MENU_OPTION_VIEW_TRANSFER_BY_ID = "View details of a transfer by it's ID";
+	private static final String MAIN_MENU_OPTION_APPROVE_OR_REJECT_PENDING_REQUESTS = "Approve or reject pending requests";
 	private static final String MAIN_MENU_OPTION_LOGIN = "Login as different user";
-	private static final String[] MAIN_MENU_OPTIONS = { MAIN_MENU_OPTION_VIEW_BALANCE, MAIN_MENU_OPTION_SEND_BUCKS, MAIN_MENU_OPTION_VIEW_PAST_TRANSFERS, MAIN_MENU_OPTION_REQUEST_BUCKS, MAIN_MENU_OPTION_VIEW_PENDING_REQUESTS, MAIN_MENU_OPTION_VIEW_TRANSFER_BY_ID, MAIN_MENU_OPTION_LOGIN, MENU_OPTION_EXIT };
+	private static final String[] MAIN_MENU_OPTIONS = { MAIN_MENU_OPTION_VIEW_BALANCE, MAIN_MENU_OPTION_SEND_BUCKS, MAIN_MENU_OPTION_VIEW_PAST_TRANSFERS, MAIN_MENU_OPTION_REQUEST_BUCKS, MAIN_MENU_OPTION_VIEW_PENDING_REQUESTS, MAIN_MENU_OPTION_VIEW_TRANSFER_BY_ID, MAIN_MENU_OPTION_APPROVE_OR_REJECT_PENDING_REQUESTS, MAIN_MENU_OPTION_LOGIN, MENU_OPTION_EXIT };
 	
     private AuthenticatedUser currentUser;
     private ConsoleService console;
     private AuthenticationService authenticationService;
     private AccountService accountService;
+
+	private final long pending = 1;
+	private final long approved = 2;
+	private final long rejected = 3;
+
+	private final long request = 1;
+	private final long send = 2;
 
     public static void main(String[] args) {
     	App app = new App(new ConsoleService(System.in, System.out), new AuthenticationService(API_BASE_URL), new AccountService());
@@ -58,19 +66,21 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 
 	private void mainMenu(){
 		while(true) {
-			String choice = (String)console.getChoiceFromOptions(MAIN_MENU_OPTIONS);
-			if(MAIN_MENU_OPTION_VIEW_BALANCE.equals(choice)) {
+			String choice = (String) console.getChoiceFromOptions(MAIN_MENU_OPTIONS);
+			if (MAIN_MENU_OPTION_VIEW_BALANCE.equals(choice)) {
 				viewCurrentBalance();
-			} else if(MAIN_MENU_OPTION_VIEW_PAST_TRANSFERS.equals(choice)) {
+			} else if (MAIN_MENU_OPTION_VIEW_PAST_TRANSFERS.equals(choice)) {
 				viewTransferHistory();
-			} else if(MAIN_MENU_OPTION_VIEW_PENDING_REQUESTS.equals(choice)) {
+			} else if (MAIN_MENU_OPTION_VIEW_PENDING_REQUESTS.equals(choice)) {
 				viewPendingRequests();
-			} else if(MAIN_MENU_OPTION_SEND_BUCKS.equals(choice)) {
+			} else if (MAIN_MENU_OPTION_SEND_BUCKS.equals(choice)) {
 				sendBucks();
-			} else if(MAIN_MENU_OPTION_REQUEST_BUCKS.equals(choice)) {
+			} else if (MAIN_MENU_OPTION_REQUEST_BUCKS.equals(choice)) {
 				requestBucks();
-			} else if(MAIN_MENU_OPTION_VIEW_TRANSFER_BY_ID.equals(choice)) {
+			} else if (MAIN_MENU_OPTION_VIEW_TRANSFER_BY_ID.equals(choice)) {
 				viewTransferById();
+			} else if (MAIN_MENU_OPTION_APPROVE_OR_REJECT_PENDING_REQUESTS.equals(choice)){
+				approveOrRejectRequest();
 			} else if(MAIN_MENU_OPTION_LOGIN.equals(choice)) {
 				login();
 			} else {
@@ -106,7 +116,7 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		// TODO Auto-generated method stub
 		Transfer[] transfers = accountService.getTransfersByUser();
 		for(Transfer transfer : transfers) {
-			if (transfer.getTransferStatusId() == 1L) {
+			if (transfer.getTransferStatusId() == pending) {
 				System.out.println(transfer.toString());
 			}
 		}
@@ -127,8 +137,8 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 				int amountToSend = Integer.parseInt(scanner.nextLine());
 				BigDecimal amount = new BigDecimal(amountToSend);
 				Transfer transfer = new Transfer();
-				transfer.setTransferTypeId(2L); //TODO refactor and make a variable
-				transfer.setTransferStatusId(2L);
+				transfer.setTransferTypeId(approved);
+				transfer.setTransferStatusId(approved);
 				transfer.setAccountFromId(accountService.findAccountIdByUserId(currentUser.getUser().getId()));
 				transfer.setAccountToId(recipientAccountId);
 				transfer.setAmount(amount);
@@ -143,7 +153,52 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 
 	private void requestBucks() {
 		// TODO Auto-generated method stub
-		
+		try{
+
+			Scanner scanner = new Scanner(System.in);
+			System.out.println("Who do you want to request from?");
+			accountService.printRecipients();
+			String requestee = scanner.nextLine();
+			long requesteeId = accountService.findIdByUsername(requestee);
+			long requesteeAccountId = accountService.findAccountIdByUserId(requesteeId);
+			System.out.println("Enter amount of money to request: ");
+			int amountToRequest = Integer.parseInt(scanner.nextLine());
+			BigDecimal amount = new BigDecimal(amountToRequest);
+			Transfer transfer = new Transfer();
+			transfer.setTransferTypeId(pending);
+			transfer.setTransferStatusId(pending);
+			transfer.setAccountFromId(accountService.findAccountIdByUserId(currentUser.getUser().getId()));
+			transfer.setAccountToId(requesteeAccountId);
+			transfer.setAmount(amount);
+			accountService.createRequest(transfer);
+		} catch (AccountServiceException e) {
+			System.out.println("Account service exception");
+		}
+	}
+
+	private void approveOrRejectRequest() {
+		viewPendingRequests();
+		try {
+			Scanner scanner = new Scanner(System.in);
+			System.out.println("Please choose a request to respond to (enter transaction id): ");
+			Long id = Long.parseLong(scanner.nextLine());
+			Transfer transfer = accountService.getTransferById(id);
+			System.out.println("Approve[A} or Reject[R] request?: ");
+			if(scanner.nextLine().equals("R")){
+				accountService.reject(transfer);
+			}
+			else if(scanner.nextLine().equals("A")){
+				if(accountService.getBalance().compareTo(transfer.getAmount()) < 0){
+					System.out.println("You do not have enough to complete this request. Request will be rejected.");
+					accountService.reject(transfer);
+				}
+				else accountService.approve(transfer);
+			}
+
+
+		} catch (AccountServiceException e) {
+			System.out.println("Account service exception");
+		}
 	}
 
 	private void viewTransferById() {

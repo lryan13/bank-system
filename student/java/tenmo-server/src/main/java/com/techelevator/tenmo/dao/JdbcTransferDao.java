@@ -2,10 +2,12 @@ package com.techelevator.tenmo.dao;
 
 import com.techelevator.tenmo.model.Transfer;
 import com.techelevator.tenmo.model.User;
+import org.springframework.dao.DataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Component;
 
+import javax.sql.DataSource;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,16 +16,40 @@ import java.util.List;
 public class JdbcTransferDao  implements TransferDao{
     private List<Transfer> transfers;
     private JdbcTemplate jdbcTemplate;
+    private JdbcAccountDao jdbcAccountDao;
 
-    public JdbcTransferDao(JdbcTemplate jdbcTemplate){
-        this.jdbcTemplate = jdbcTemplate;
+    public JdbcTransferDao(DataSource dataSource){
+        this.jdbcTemplate = new JdbcTemplate(dataSource);
     }
 
     @Override
-    public Transfer create(long transferTypeId, long transferStatusId, long accountFrom, long accountTo, BigDecimal amount) {
+    public long create(long transferTypeId, long transferStatusId, long accountFrom, long accountTo, BigDecimal amount) {
         String sql = "INSERT INTO transfers (transfer_type_id, transfer_status_id, account_from, account_to, amount) VALUES(?,?,?,?,?) RETURNING transfer_id;";
         long transferId =  jdbcTemplate.queryForObject(sql, long.class, transferTypeId, transferStatusId, accountFrom, accountTo, amount);
-        return new Transfer(transferId);
+        return transferId;
+    }
+
+    @Override
+    public void reject(long transferId) {
+        Transfer transfer = getTransferByTransferId(transferId);
+        transfer.setTransferId(transferId);
+        jdbcTemplate.execute("BEGIN TRANSACTION");
+        String sql = "UPDATE transfers SET transfer_status_id = 3 WHERE transfer_id = ?";
+        jdbcTemplate.update(sql, transferId);
+        jdbcTemplate.execute("COMMIT");
+        /*transfer.setTransferStatusId(rejected);*/
+    }
+
+    @Override
+    public void approve(long transferId) {
+        Transfer transfer = getTransferByTransferId(transferId);
+        transfer.setTransferId(transferId);
+        jdbcTemplate.execute("BEGIN TRANSACTION");
+        String sql = "UPDATE transfers SET transfer_status_id = 2 WHERE transfer_id = ?";
+        jdbcTemplate.update(sql, transferId);
+        jdbcTemplate.execute("COMMIT");
+        jdbcAccountDao.updateRecipientAccount(transfer.getAccountFromId());
+        jdbcAccountDao.updateSenderAccount(transfer.getAccountToId());
     }
 
     @Override

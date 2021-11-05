@@ -66,7 +66,7 @@ public class AccountService {
     public boolean createTransfer(Transfer transfer){
         boolean success = false;
         try {
-            restTemplate.exchange(this.baseUrl + "transfer/new", HttpMethod.POST, makeTransferEntity(transfer), Void.class);
+            restTemplate.exchange(this.baseUrl + "transfer/send", HttpMethod.POST, makeTransferEntity(transfer), Void.class);
             success = true;
         } catch (RestClientResponseException | ResourceAccessException e) {
             System.out.println(e.getMessage());
@@ -91,6 +91,38 @@ public class AccountService {
         }
     }
 
+    public boolean createRequest(Transfer transfer){
+        boolean success = false;
+        try {
+            restTemplate.exchange(this.baseUrl + "transfer/request", HttpMethod.POST, makeTransferEntity(transfer), Void.class);
+            success = true;
+        } catch (RestClientResponseException | ResourceAccessException e) {
+            System.out.println(e.getMessage());
+        }
+        return success;
+    }
+
+    public boolean reject(Transfer transfer){
+        boolean success = false;
+        try {
+            restTemplate.exchange(this.baseUrl + "transfer/reject/" + transfer.getTransferId(), HttpMethod.POST, makeTransferEntity(transfer), Void.class);
+            success = true;
+        } catch (RestClientResponseException | ResourceAccessException e) {
+            System.out.println(e.getMessage());
+        }
+        return success;
+    }
+
+    public boolean approve(Transfer transfer){
+        boolean success = false;
+        try {
+            restTemplate.exchange(this.baseUrl + "transfer/approve/" + transfer.getTransferId(), HttpMethod.POST, makeTransferEntity(transfer), Void.class);
+            success = true;
+        } catch (RestClientResponseException | ResourceAccessException e) {
+            System.out.println(e.getMessage());
+        }
+        return success;
+    }
 
 
     private HttpEntity<Transfer> makeTransferEntity(Transfer transfer){

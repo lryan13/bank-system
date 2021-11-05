@@ -25,7 +25,6 @@ public class JdbcAccountDao implements AccountDao{
     @Override
     public long findAccountIdByUserId(long user_id) {
         String sql = "SELECT account_id FROM accounts WHERE user_id = ?;";
-        /*SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, user_id);*/
         Long id = jdbcTemplate.queryForObject(sql, Long.class, user_id);
         if (id != null){
             return id;
@@ -62,12 +61,14 @@ public class JdbcAccountDao implements AccountDao{
 
     @Override
     public void updateRecipientAccount(Long account_id) {
+        jdbcTemplate.execute("BEGIN TRANSACTION");
         String sql = "UPDATE accounts SET balance = balance + " +
                 "(SELECT amount FROM transfers ORDER BY transfer_id DESC LIMIT 1) WHERE account_id = ?; ";
 
         jdbcTemplate.update(sql, account_id);
         jdbcTemplate.execute("COMMIT");
     }
+
 
     private Account mapRowToAccount(SqlRowSet rowSet) {
         Account account = new Account();
