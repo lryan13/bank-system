@@ -76,9 +76,14 @@ public class TransferController {
     }
 
 
-    @RequestMapping(path = "/list", method = RequestMethod.GET)
-    public List<Transfer> transfers(Principal principal) {
-        return transferDao.getTransfersByUsername(principal.getName());
+    @RequestMapping(path = "/list/{accountToId}", method = RequestMethod.GET)
+    public List<Transfer> transfers(Principal principal, @PathVariable Long accountToId) {
+        return transferDao.getTransfersByUsername(principal.getName(), accountToId);
+    }
+
+    @RequestMapping(path = "/pending/{accountToId}", method = RequestMethod.GET)
+    public List<Transfer> transfers(@PathVariable long accountToId) {
+        return transferDao.getTransferByAccountId(accountToId);
     }
 
     @RequestMapping(path = "/get/{transferId}", method = RequestMethod.GET)

@@ -33,13 +33,24 @@ public class AccountService {
         return response.getBody();
     }
 
-    public Transfer[] getTransfersByUser() {
+    public Transfer[] getTransfersByUser(Long accountToId) {
         Transfer[] transfers = null;
         try{
-            ResponseEntity<Transfer[]> response = restTemplate.exchange(this.baseUrl + "transfer/list", HttpMethod.GET, makeAuthEntity(), Transfer[].class);
+            ResponseEntity<Transfer[]> response = restTemplate.exchange(this.baseUrl + "transfer/list/" + accountToId, HttpMethod.GET, makeAuthEntity(), Transfer[].class);
             transfers = response.getBody();
         } catch (RestClientResponseException | ResourceAccessException e) {
             System.out.println("error found");
+        }
+        return transfers;
+    }
+
+    public Transfer[] getPendingTransfers(Long accountToId) {
+        Transfer[] transfers = null;
+        try{
+            ResponseEntity<Transfer[]> response = restTemplate.exchange(this.baseUrl + "transfer/pending/" + accountToId, HttpMethod.GET, makeAuthEntity(), Transfer[].class);
+            transfers = response.getBody();
+        } catch (RestClientResponseException | ResourceAccessException e) {
+            System.out.println(e.getMessage());
         }
         return transfers;
     }

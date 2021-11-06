@@ -12,6 +12,7 @@ import com.techelevator.view.ConsoleService;
 
 import java.math.BigDecimal;
 import java.text.NumberFormat;
+import java.util.Locale;
 import java.util.Scanner;
 
 public class App {
@@ -106,20 +107,33 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 
 	private void viewTransferHistory() {
 		// TODO Auto-generated method stub
-		Transfer[] transfers = accountService.getTransfersByUser();
-		for(Transfer transfer : transfers){
-			System.out.println(transfer.toString());
+		try {
+			Transfer[] transfers = accountService.getTransfersByUser(accountService.findAccountIdByUserId(currentUser.getUser().getId()));
+			for (Transfer transfer : transfers) {
+				System.out.println(transfer.toString());
+			}
+		} catch (AccountServiceException e) {
+			System.out.println("Account service exception");
 		}
 	}
 
-	private void viewPendingRequests() {
+	private boolean viewPendingRequests() {
 		// TODO Auto-generated method stub
-		Transfer[] transfers = accountService.getTransfersByUser();
-		for(Transfer transfer : transfers) {
-			if (transfer.getTransferStatusId() == pending) {
-				System.out.println(transfer.toString());
+		try {
+			Transfer[] transfers = accountService.getPendingTransfers(accountService.findAccountIdByUserId(currentUser.getUser().getId()));
+			if(transfers.length == 0){
+				System.out.println("You have no pending transfers.");
+				return false;
 			}
+			else {
+				for (Transfer transfer : transfers) {
+					System.out.println(transfer.toString());
+				}
+			}
+		} catch (AccountServiceException e) {
+			System.out.println("Account service exception");
 		}
+		return true;
 	}
 
 	private void sendBucks()  {
@@ -136,13 +150,17 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 				System.out.println("Enter amount of money to send: ");
 				int amountToSend = Integer.parseInt(scanner.nextLine());
 				BigDecimal amount = new BigDecimal(amountToSend);
-				Transfer transfer = new Transfer();
-				transfer.setTransferTypeId(approved);
-				transfer.setTransferStatusId(approved);
-				transfer.setAccountFromId(accountService.findAccountIdByUserId(currentUser.getUser().getId()));
-				transfer.setAccountToId(recipientAccountId);
-				transfer.setAmount(amount);
-				accountService.createTransfer(transfer);
+				if(amount.compareTo(accountService.getBalance()) <= 0 && amount.compareTo(new BigDecimal("0")) > 0) {
+					Transfer transfer = new Transfer();
+					transfer.setTransferTypeId(approved);
+					transfer.setTransferStatusId(approved);
+					transfer.setAccountFromId(accountService.findAccountIdByUserId(currentUser.getUser().getId()));
+					transfer.setAccountToId(recipientAccountId);
+					transfer.setAmount(amount);
+					accountService.createTransfer(transfer);
+				} else {
+					System.out.println("You can not make this transfer.");
+				}
 
 
 		} catch (AccountServiceException e) {
@@ -177,27 +195,27 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void approveOrRejectRequest() {
-		viewPendingRequests();
-		try {
-			Scanner scanner = new Scanner(System.in);
-			System.out.println("Please choose a request to respond to (enter transaction id): ");
-			Long id = Long.parseLong(scanner.nextLine());
-			Transfer transfer = accountService.getTransferById(id);
-			System.out.println("Approve[A} or Reject[R] request?: ");
-			if(scanner.nextLine().equals("R")){
-				accountService.reject(transfer);
-			}
-			else if(scanner.nextLine().equals("A")){
-				if(accountService.getBalance().compareTo(transfer.getAmount()) < 0){
-					System.out.println("You do not have enough to complete this request. Request will be rejected.");
+		if (viewPendingRequests()) {
+			try {
+				Scanner scanner = new Scanner(System.in);
+				System.out.println("Please choose a request to respond to (enter transaction id): ");
+				Long id = Long.parseLong(scanner.nextLine());
+				Transfer transfer = accountService.getTransferById(id);
+				System.out.println("Approve[A} or Reject[R] request?: ");
+				String decision = scanner.nextLine().toUpperCase();
+				if (decision.equals("R")) {
 					accountService.reject(transfer);
+				} else if (decision.equals("A")) {
+					if (accountService.getBalance().compareTo(transfer.getAmount()) < 0) {
+						System.out.println("You do not have enough to complete this request. Request will be rejected.");
+						accountService.reject(transfer);
+					} else accountService.approve(transfer);
 				}
-				else accountService.approve(transfer);
+
+
+			} catch (AccountServiceException e) {
+				System.out.println("Account service exception");
 			}
-
-
-		} catch (AccountServiceException e) {
-			System.out.println("Account service exception");
 		}
 	}
 

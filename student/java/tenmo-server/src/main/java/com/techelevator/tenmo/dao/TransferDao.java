@@ -11,5 +11,7 @@ public interface TransferDao {
     void reject(long transferId);
     void approve(long transferId);
     List<Transfer> getTransfersByUsername(String username);
+    List<Transfer> getTransfersByUsername(String username, Long accountToId);
     Transfer getTransferByTransferId(Long transferId);
+    List<Transfer> getTransferByAccountId(Long accountId);
 }

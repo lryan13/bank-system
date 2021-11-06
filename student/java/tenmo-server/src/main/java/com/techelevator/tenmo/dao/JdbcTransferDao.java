@@ -21,7 +21,9 @@ public class JdbcTransferDao  implements TransferDao{
 
     public JdbcTransferDao(DataSource dataSource){
         this.jdbcTemplate = new JdbcTemplate(dataSource);
+        this.jdbcAccountDao = new JdbcAccountDao(dataSource);
     }
+
 
     @Override
     public long create(long transferTypeId, long transferStatusId, long accountFrom, long accountTo, BigDecimal amount) {
@@ -59,8 +61,20 @@ public class JdbcTransferDao  implements TransferDao{
         String sql = "SELECT * FROM transfers " +
                 "JOIN accounts ON accounts.account_id = transfers.account_from " +
                 "JOIN users ON users.user_id = accounts.user_id " +
-                "WHERE username = ?;";
+                "WHERE username = ?";
         SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, username);
+        while(rowSet.next()){
+            transfers.add(mapRowToTransfer(rowSet));
+        }
+        return transfers;
+    }
+    public List<Transfer> getTransfersByUsername(String username, Long accountToId) {
+        List<Transfer> transfers = new ArrayList<>();
+        String sql = "SELECT * FROM transfers " +
+                "JOIN accounts ON accounts.account_id = transfers.account_from " +
+                "JOIN users ON users.user_id = accounts.user_id " +
+                "WHERE username = ? OR account_to = ?;";
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, username, accountToId);
         while(rowSet.next()){
             transfers.add(mapRowToTransfer(rowSet));
         }
@@ -76,6 +90,17 @@ public class JdbcTransferDao  implements TransferDao{
         } else {
             return null;
         }
+    }
+
+    @Override
+    public List<Transfer> getTransferByAccountId(Long accountId) {
+        List<Transfer> transfers = new ArrayList<>();
+        String sql = "SELECT * FROM transfers WHERE account_to = ? AND transfer_status_id = 1";
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, accountId);
+        while(rowSet.next()){
+            transfers.add(mapRowToTransfer(rowSet));
+        }
+        return transfers;
     }
 
 
