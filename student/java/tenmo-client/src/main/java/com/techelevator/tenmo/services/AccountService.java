@@ -98,7 +98,9 @@ public class AccountService {
         String path = this.baseUrl + "account/user/list";
         ResponseEntity<User[]> response = restTemplate.exchange(path, HttpMethod.GET, makeAuthEntity(), User[].class);
         for(User user: response.getBody()) {
-            System.out.println("Username: " + user.getUsername() + " User Id: " + user.getId());
+            if (!user.getUsername().equals(this.user.getUser().getUsername())) {
+                System.out.println("Username: " + user.getUsername() + " User Id: " + user.getId());
+            }
         }
     }
 
