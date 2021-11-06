@@ -1,9 +1,6 @@
 package com.techelevator.tenmo;
 
-import com.techelevator.tenmo.model.Account;
-import com.techelevator.tenmo.model.AuthenticatedUser;
-import com.techelevator.tenmo.model.Transfer;
-import com.techelevator.tenmo.model.UserCredentials;
+import com.techelevator.tenmo.model.*;
 import com.techelevator.tenmo.services.AccountService;
 import com.techelevator.tenmo.services.AccountServiceException;
 import com.techelevator.tenmo.services.AuthenticationService;
@@ -93,12 +90,12 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 
 	private void viewCurrentBalance() {
 		if(currentUser == null) {
-			System.out.println("please log in to see your balance");
+			System.out.println("Please log in to see your balance");
 			return;
 		}
 		try{
 			BigDecimal balance = accountService.getBalance();
-			System.out.format("current balance is %s%n", NumberFormat.getCurrencyInstance().format(balance));
+			System.out.format("*********************************\n" + "Your current balance is %s%n", NumberFormat.getCurrencyInstance().format(balance) + "\n*********************************");
 		} catch (AccountServiceException e) {
 			System.out.println("Account not found");
 		}
@@ -109,8 +106,14 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		// TODO Auto-generated method stub
 		try {
 			Transfer[] transfers = accountService.getTransfersByUser(accountService.findAccountIdByUserId(currentUser.getUser().getId()));
+			System.out.println("************************************\n" + "Transfers\n" + "ID          From/To          Amount\n" + "************************************\n");
 			for (Transfer transfer : transfers) {
-				System.out.println(transfer.toString());
+				if(transfer.getAccountFromId() == accountService.findAccountIdByUserId(currentUser.getUser().getId())) {
+					System.out.print(transfer.getTransferId() + "        " + "To: " + accountService.findUsernameByAccountId(transfer.getAccountToId()) + "          $" + transfer.getAmount() + "\n");
+				}
+				if(transfer.getAccountToId() == accountService.findAccountIdByUserId(currentUser.getUser().getId())){
+					System.out.print(transfer.getTransferId() + "        " + "From: " + accountService.findUsernameByAccountId(transfer.getAccountFromId()) + "        $" + transfer.getAmount() + "\n");
+				}
 			}
 		} catch (AccountServiceException e) {
 			System.out.println("Account service exception");
@@ -126,8 +129,9 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 				return false;
 			}
 			else {
+				System.out.println("************************************\n" + "Pending Transfers\n" + "ID          To          Amount\n" + "************************************\n");
 				for (Transfer transfer : transfers) {
-					System.out.println(transfer.toString());
+					System.out.print(transfer.getTransferId() + "        " + accountService.findUsernameByAccountId(transfer.getAccountFromId()) + "          $" + transfer.getAmount() + "\n");
 				}
 			}
 		} catch (AccountServiceException e) {
@@ -140,11 +144,22 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		// TODO Auto-generated method stub
 
 		try{
+			Scanner scanner = new Scanner(System.in);
+			User[] users = accountService.printRecipients();
+			String recipient = ">";
+			String usersString = "0";
+			for(User user : users){
+				usersString += user.toString();
+			}
+			System.out.println("Who do you want to send to (type '0' to cancel)?");
+			while(!usersString.contains(recipient)){
+				System.out.println("Please enter a valid user");
+				recipient = scanner.nextLine();
+			}
 
-				Scanner scanner = new Scanner(System.in);
-				System.out.println("Who do you want to send to?");
-				accountService.printRecipients();
-				String recipient = scanner.nextLine().toUpperCase();
+			if(recipient.equals("0")){
+				mainMenu();
+			}
 				long recipientId = accountService.findIdByUsername(recipient.toUpperCase());
 				long recipientAccountId = accountService.findAccountIdByUserId(recipientId);
 				System.out.println("Enter amount of money to send: ");
@@ -172,11 +187,22 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	private void requestBucks() {
 		// TODO Auto-generated method stub
 		try{
-
 			Scanner scanner = new Scanner(System.in);
-			System.out.println("Who do you want to request from?");
-			accountService.printRecipients();
-			String requestee = scanner.nextLine().toUpperCase();
+			User[] users = accountService.printRecipients();
+			String requestee = ">";
+			String usersString = "0";
+			for(User user : users){
+				usersString += user.toString();
+			}
+			System.out.println("Who do you want to request from (type '0' to cancel)?");
+			while(!usersString.contains(requestee)){
+				System.out.println("Please enter a valid user");
+				requestee = scanner.nextLine();
+			}
+
+			if(requestee.equals("0")){
+				mainMenu();
+			}
 			long requesteeId = accountService.findIdByUsername(requestee.toUpperCase());
 			long requesteeAccountId = accountService.findAccountIdByUserId(requesteeId);
 			System.out.println("Enter amount of money to request: ");
@@ -198,7 +224,7 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		if (viewPendingRequests()) {
 			try {
 				Scanner scanner = new Scanner(System.in);
-				System.out.println("Please choose a request to respond to (enter transaction id): ");
+				System.out.println("\nPlease choose a request to respond to (enter transaction id): ");
 				Long id = Long.parseLong(scanner.nextLine());
 				Transfer transfer = accountService.getTransferById(id);
 				System.out.println("Approve[A} or Reject[R] request?: ");

@@ -73,6 +73,15 @@ public class AccountService {
         return response.getBody();
     }
 
+    public String findUsernameByAccountId(Long accountId) throws AccountServiceException {
+        if (this.user == null) {
+            throw new AccountServiceException();
+        }
+        String path = this.baseUrl + "account/username/" + accountId;
+        ResponseEntity<String> response = restTemplate.exchange(path, HttpMethod.GET, makeAuthEntity(), String.class);
+        return response.getBody();
+    }
+
 
     public boolean createTransfer(Transfer transfer){
         boolean success = false;
@@ -94,7 +103,7 @@ public class AccountService {
         return response.getBody();
     }
 
-    public void printRecipients() {
+    public User[] printRecipients() {
         String path = this.baseUrl + "account/user/list";
         ResponseEntity<User[]> response = restTemplate.exchange(path, HttpMethod.GET, makeAuthEntity(), User[].class);
         for(User user: response.getBody()) {
@@ -102,6 +111,7 @@ public class AccountService {
                 System.out.println("Username: " + user.getUsername() + " User Id: " + user.getId());
             }
         }
+        return response.getBody();
     }
 
     public boolean createRequest(Transfer transfer){

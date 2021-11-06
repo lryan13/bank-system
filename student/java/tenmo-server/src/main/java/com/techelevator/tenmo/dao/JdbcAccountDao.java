@@ -51,6 +51,19 @@ public class JdbcAccountDao implements AccountDao{
         throw new UsernameNotFoundException("User " + username + " was not found.");
     }
 
+    @Override
+    public String getUsernameByAccountId(Long accountId){
+        String sql = "SELECT username FROM users " +
+                "JOIN accounts ON users.user_id = accounts.user_id " +
+                "WHERE account_id = ?;";
+        String username = jdbcTemplate.queryForObject(sql, String.class, accountId);
+        SqlRowSet rowSet = jdbcTemplate.queryForRowSet(sql, accountId);
+        if (rowSet.next()){
+            return username;
+        }
+        throw new UsernameNotFoundException("Account with ID " + accountId + " was not found.");
+    }
+
     //TODO refactor with transferId, remove subqueries, combine methods
     @Override
     public void updateSenderAccount(Long account_id) {

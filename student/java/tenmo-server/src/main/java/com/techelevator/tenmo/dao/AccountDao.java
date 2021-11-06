@@ -10,5 +10,6 @@ public interface AccountDao {
     void updateSenderAccount(Long account_id);
     void updateRecipientAccount(Long account_id);
     BigDecimal getBalance(String username);
+    String getUsernameByAccountId(Long accountId);
 
 }
