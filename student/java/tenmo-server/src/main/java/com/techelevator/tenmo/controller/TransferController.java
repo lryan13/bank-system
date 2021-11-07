@@ -44,10 +44,11 @@ public class TransferController {
             System.out.println("can not send a negative or 0 amount");
         }
         else if(transfer.getAmount().compareTo(accountDao.getBalance(user)) <= 0 || accountDao.getBalance(user).compareTo(new BigDecimal(0)) >= 0) {
-            transferDao.create(send, approved, accountId, transfer.getAccountToId(), transfer.getAmount());
+            Long id = transferDao.create(send, approved, accountId, transfer.getAccountToId(), transfer.getAmount());
+            Transfer currentTransfer = transferDao.getTransferByTransferId(id);
             transfer.setAccountToId(transfer.getAccountToId());
-            accountDao.updateSenderAccount(accountId);
-            accountDao.updateRecipientAccount(transfer.getAccountToId());
+            transfer.setTransferId(transfer.getTransferId());
+            accountDao.update(currentTransfer.getTransferId(), accountId, currentTransfer.getAccountToId());
         }
         else System.out.println("not enough money");
     }

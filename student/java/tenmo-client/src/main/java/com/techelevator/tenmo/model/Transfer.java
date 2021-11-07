@@ -1,5 +1,8 @@
 package com.techelevator.tenmo.model;
 
+import com.techelevator.tenmo.services.AccountService;
+import com.techelevator.tenmo.services.AccountServiceException;
+
 import java.math.BigDecimal;
 
 public class Transfer {
@@ -9,6 +12,12 @@ public class Transfer {
     private Long accountFromId;
     private Long accountToId;
     private BigDecimal amount;
+    private AccountService accountService = new AccountService();
+    private AuthenticatedUser user;
+
+    public void setAuthenticatedUser(AuthenticatedUser user) {
+        this.user = user;
+    }
 
     public Long getTransferId() {
         return transferId;
@@ -58,15 +67,5 @@ public class Transfer {
         this.amount = amount;
     }
 
-    @Override
-    public String toString() {
-        return "Transfer{" +
-                "id=" + transferId +
-                ", typeId=" + transferTypeId +
-                ", statusId=" + transferStatusId +
-                ", accountFromId=" + accountFromId +
-                ", accountToId=" + accountToId +
-                ", amount=" + amount +
-                '}';
-    }
 }
+

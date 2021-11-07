@@ -40,7 +40,6 @@ public class JdbcTransferDao  implements TransferDao{
         String sql = "UPDATE transfers SET transfer_status_id = 3 WHERE transfer_id = ?";
         jdbcTemplate.update(sql, transferId);
         jdbcTemplate.execute("COMMIT");
-        /*transfer.setTransferStatusId(rejected);*/
     }
 
     @Override
@@ -51,8 +50,7 @@ public class JdbcTransferDao  implements TransferDao{
         String sql = "UPDATE transfers SET transfer_status_id = 2 WHERE transfer_id = ?";
         jdbcTemplate.update(sql, transferId);
         jdbcTemplate.execute("COMMIT");
-        jdbcAccountDao.updateRecipientAccount(transfer.getAccountFromId());
-        jdbcAccountDao.updateSenderAccount(transfer.getAccountToId());
+        jdbcAccountDao.update(transfer.getTransferId(), transfer.getAccountToId(), transfer.getAccountFromId());
     }
 
     @Override

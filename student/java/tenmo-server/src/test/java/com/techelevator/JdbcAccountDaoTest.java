@@ -4,6 +4,7 @@ import com.techelevator.tenmo.dao.JdbcAccountDao;
 import com.techelevator.tenmo.dao.JdbcTransferDao;
 import com.techelevator.tenmo.dao.JdbcUserDao;
 import com.techelevator.tenmo.model.Account;
+import com.techelevator.tenmo.model.Transfer;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,13 +32,6 @@ public class JdbcAccountDaoTest extends BaseDaoTests{
 
     }
 
-//    @Test
-//    public void findAccountIdByUserId_returns_null_if_id_not_found() {
-//        long accountId = sut.findAccountIdByUserId(1001);
-//        Assert.assertEquals(null, accountId);
-//
-//    }
-
     @Test
     public void findAccountIdByUserId_returns_correct_value_for_account_matching_user() {
 
@@ -53,24 +47,28 @@ public class JdbcAccountDaoTest extends BaseDaoTests{
     }
 
     @Test
-    public void updateSenderAccount_updates_account_to_expected_final_balance(){
+    public void updateFirstAccount_updates_account_to_expected_final_balance(){
         transfer = new JdbcTransferDao(dataSource);
-        transfer.create(2L, 2L, 2001, 2002, new BigDecimal("100"));
-        sut.updateSenderAccount((long)2001);
+        Long id = transfer.create( 2L, 2L, (long)2001, (long)2002, new BigDecimal("100"));
+        Transfer currentTransfer = transfer.getTransferByTransferId(id);
+        sut.updateFirstAccount(currentTransfer.getTransferId(), currentTransfer.getAccountFromId());
         BigDecimal actualResult = sut.getBalance("user");
         BigDecimal expectedResult = new BigDecimal("900.00");
         Assert.assertEquals(expectedResult, actualResult);
     }
 
     @Test
-    public void updateRecipientAccount_updates_account_to_expected_final_balance(){
+    public void updateSecondAccount_updates_account_to_expected_final_balance(){
         transfer = new JdbcTransferDao(dataSource);
-        transfer.create(2L, 2L, 2001, 2002, new BigDecimal("100"));
-        sut.updateRecipientAccount((long)2002);
+        Long id = transfer.create( 2L, 2L, (long)2001, (long)2002, new BigDecimal("100"));
+        Transfer currentTransfer = transfer.getTransferByTransferId(id);
+        sut.updateSecondAccount(currentTransfer.getTransferId(), currentTransfer.getAccountToId());
         BigDecimal actualResult = sut.getBalance("userTwo");
         BigDecimal expectedResult = new BigDecimal("1100.00");
         Assert.assertEquals(expectedResult, actualResult);
     }
+
+    // update method tested by previous two methods
 
     private void assertAccountsMatch(Account expected, Account actual) {
         Assert.assertEquals(expected.getAccount_id(), actual.getAccount_id());

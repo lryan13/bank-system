@@ -57,7 +57,6 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		System.out.println("*********************");
 		System.out.println("* Welcome to TEnmo! *");
 		System.out.println("*********************");
-		
 		registerAndLogin();
 		mainMenu();
 	}
@@ -96,32 +95,64 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 		try{
 			BigDecimal balance = accountService.getBalance();
 			System.out.format("*********************************\n" + "Your current balance is %s%n", NumberFormat.getCurrencyInstance().format(balance) + "\n*********************************");
-		} catch (AccountServiceException e) {
+		}
+		catch (AccountServiceException e) {
 			System.out.println("Account not found");
 		}
-		
 	}
 
 	private void viewTransferHistory() {
-		// TODO Auto-generated method stub
+
 		try {
 			Transfer[] transfers = accountService.getTransfersByUser(accountService.findAccountIdByUserId(currentUser.getUser().getId()));
-			System.out.println("************************************\n" + "Transfers\n" + "ID          From/To          Amount\n" + "************************************\n");
+			System.out.println("******************************************************\n" + "Transfers\n" + "ID          From/To          Amount          Status\n" + "******************************************************");
 			for (Transfer transfer : transfers) {
-				if(transfer.getAccountFromId() == accountService.findAccountIdByUserId(currentUser.getUser().getId())) {
-					System.out.print(transfer.getTransferId() + "        " + "To: " + accountService.findUsernameByAccountId(transfer.getAccountToId()) + "          $" + transfer.getAmount() + "\n");
+				if(transfer.getAccountFromId() == accountService.findAccountIdByUserId(currentUser.getUser().getId()) && transfer.getTransferTypeId() == send) {
+					if (transfer.getTransferStatusId() == rejected) {
+						System.out.print(transfer.getTransferId() + "        " + "To: " + accountService.findUsernameByAccountId(transfer.getAccountToId()) + "          $" + transfer.getAmount() + "        (Rejected)\n");
+					}
+					else if (transfer.getTransferStatusId() == pending){
+						System.out.print(transfer.getTransferId() + "        " + "To: " + accountService.findUsernameByAccountId(transfer.getAccountToId()) + "          $" + transfer.getAmount() + "        (Pending)\n");
+					}
+					else System.out.print(transfer.getTransferId() + "        " + "To: " + accountService.findUsernameByAccountId(transfer.getAccountToId()) + "          $" + transfer.getAmount() + "        (Approved)\n");
 				}
-				if(transfer.getAccountToId() == accountService.findAccountIdByUserId(currentUser.getUser().getId())){
-					System.out.print(transfer.getTransferId() + "        " + "From: " + accountService.findUsernameByAccountId(transfer.getAccountFromId()) + "        $" + transfer.getAmount() + "\n");
+				if(transfer.getAccountFromId() == accountService.findAccountIdByUserId(currentUser.getUser().getId()) && transfer.getTransferTypeId() == request) {
+					if (transfer.getTransferStatusId() == rejected) {
+						System.out.print(transfer.getTransferId() + "        " + "From: " + accountService.findUsernameByAccountId(transfer.getAccountToId()) + "        $" + transfer.getAmount() + "        (Rejected)\n");
+					}
+					else if (transfer.getTransferStatusId() == pending){
+						System.out.print(transfer.getTransferId() + "        " + "From: " + accountService.findUsernameByAccountId(transfer.getAccountToId()) + "        $" + transfer.getAmount() + "        (Pending)\n");
+					}
+					else System.out.print(transfer.getTransferId() + "        " + "From: " + accountService.findUsernameByAccountId(transfer.getAccountToId()) + "        $" + transfer.getAmount() + "        (Approved)\n");
+				}
+				if(transfer.getAccountToId() == accountService.findAccountIdByUserId(currentUser.getUser().getId()) && transfer.getTransferTypeId() == request) {
+					if (transfer.getTransferStatusId() == rejected) {
+						System.out.print(transfer.getTransferId() + "        " + "To: " + accountService.findUsernameByAccountId(transfer.getAccountFromId()) + "          $" + transfer.getAmount() + "        (Rejected)\n");
+					}
+					else if (transfer.getTransferStatusId() == pending){
+						System.out.print(transfer.getTransferId() + "        " + "To: " + accountService.findUsernameByAccountId(transfer.getAccountFromId()) + "          $" + transfer.getAmount() + "        (Pending)\n");
+					}
+					else System.out.print(transfer.getTransferId() + "        " + "To: " + accountService.findUsernameByAccountId(transfer.getAccountFromId()) + "          $" + transfer.getAmount() + "        (Approved)\n");
+				}
+				if(transfer.getAccountToId() == accountService.findAccountIdByUserId(currentUser.getUser().getId()) && transfer.getTransferTypeId() == send) {
+					if (transfer.getTransferStatusId() == rejected) {
+						System.out.print(transfer.getTransferId() + "        " + "From: " + accountService.findUsernameByAccountId(transfer.getAccountFromId()) + "        $" + transfer.getAmount() + "        (Rejected)\n");
+					}
+					else if (transfer.getTransferStatusId() == pending){
+						System.out.print(transfer.getTransferId() + "        " + "From: " + accountService.findUsernameByAccountId(transfer.getAccountFromId()) + "        $" + transfer.getAmount() + "        (Pending)\n");
+					}
+					else System.out.print(transfer.getTransferId() + "        " + "From: " + accountService.findUsernameByAccountId(transfer.getAccountFromId()) + "        $" + transfer.getAmount() + "        (Approved)\n");
 				}
 			}
-		} catch (AccountServiceException e) {
+			System.out.println("***********");
+		}
+		catch (AccountServiceException e) {
 			System.out.println("Account service exception");
 		}
 	}
 
 	private boolean viewPendingRequests() {
-		// TODO Auto-generated method stub
+
 		try {
 			Transfer[] transfers = accountService.getPendingTransfers(accountService.findAccountIdByUserId(currentUser.getUser().getId()));
 			if(transfers.length == 0){
@@ -129,10 +160,11 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 				return false;
 			}
 			else {
-				System.out.println("************************************\n" + "Pending Transfers\n" + "ID          To          Amount\n" + "************************************\n");
+				System.out.println("************************************\n" + "Pending Transfers\n" + "ID          To          Amount\n" + "************************************");
 				for (Transfer transfer : transfers) {
 					System.out.print(transfer.getTransferId() + "        " + accountService.findUsernameByAccountId(transfer.getAccountFromId()) + "          $" + transfer.getAmount() + "\n");
 				}
+				System.out.println("***********");
 			}
 		} catch (AccountServiceException e) {
 			System.out.println("Account service exception");
@@ -141,7 +173,6 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 	}
 
 	private void sendBucks()  {
-		// TODO Auto-generated method stub
 
 		try{
 			Scanner scanner = new Scanner(System.in);
@@ -156,7 +187,6 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 				System.out.println("Please enter a valid user");
 				recipient = scanner.nextLine();
 			}
-
 			if(recipient.equals("0")){
 				mainMenu();
 			}
@@ -176,16 +206,13 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 				} else {
 					System.out.println("You can not make this transfer.");
 				}
-
-
 		} catch (AccountServiceException e) {
 			System.out.println("Account service exception");
 		}
-
 	}
 
 	private void requestBucks() {
-		// TODO Auto-generated method stub
+
 		try{
 			Scanner scanner = new Scanner(System.in);
 			User[] users = accountService.printRecipients();
@@ -199,7 +226,6 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 				System.out.println("Please enter a valid user");
 				requestee = scanner.nextLine();
 			}
-
 			if(requestee.equals("0")){
 				mainMenu();
 			}
@@ -231,33 +257,65 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 				String decision = scanner.nextLine().toUpperCase();
 				if (decision.equals("R")) {
 					accountService.reject(transfer);
+					System.out.println("Request successfully rejected.");
 				} else if (decision.equals("A")) {
 					if (accountService.getBalance().compareTo(transfer.getAmount()) < 0) {
 						System.out.println("You do not have enough to complete this request. Request will be rejected.");
 						accountService.reject(transfer);
+						System.out.println("Request successfully approved.");
 					} else accountService.approve(transfer);
 				}
-
-
 			} catch (AccountServiceException e) {
 				System.out.println("Account service exception");
 			}
 		}
 	}
 
-	private void viewTransferById() {
+	private String viewTransferById() {
 		Scanner scanner = new Scanner(System.in);
 		System.out.println("Enter transfer ID: ");
 		long transferId = Long.parseLong(scanner.nextLine());
+		String result = "";
 		try {
 			Transfer transfer = accountService.getTransferById(transferId);
 			if(transfer != null) {
-				System.out.println(transfer.toString());
+				String type = "";
+				String status = "";
+				if(transfer.getTransferTypeId() == 1){
+					type = "Request";
+				}
+				if(transfer.getTransferTypeId() == 2) {
+					type = "Send";
+				}
+				if(transfer.getTransferStatusId() == 1){
+					status = "Pending";
+				}
+				if(transfer.getTransferStatusId() == 2){
+					status = "Approved";
+				}
+				if(transfer.getTransferStatusId() == 3){
+					status = "Rejected";
+				}
+				String from = accountService.findUsernameByAccountId(transfer.getAccountFromId());
+				String to = accountService.findUsernameByAccountId(transfer.getAccountToId());
+				result = "************************************\n" +
+						"Transfer Details\n" +
+						"************************************\n" +
+						"ID: " + transfer.getTransferId() +
+						"\nFrom: " + from +
+						"\nTo: " + to +
+						"\nType: " + type +
+						"\nStatus: " + status +
+						"\nAmount: " + transfer.getAmount() +
+						"\n***********";
 			} else System.out.println("transfer not found");
 		} catch (AccountServiceException e) {
 			System.out.println("error found");
 		}
+		System.out.println(result);
+		return result;
 	}
+
 	
 	private void exitProgram() {
 		System.exit(0);
@@ -292,7 +350,7 @@ private static final String API_BASE_URL = "http://localhost:8080/";
             	isRegistered = true;
             	System.out.println("Registration successful. You can now login.");
             } catch(AuthenticationServiceException e) {
-            	System.out.println("REGISTRATION ERROR: "+e.getMessage());
+            	System.out.println("REGISTRATION ERROR: can not have empty field.");
 				System.out.println("Please attempt to register again.");
             }
         }
@@ -308,7 +366,7 @@ private static final String API_BASE_URL = "http://localhost:8080/";
 				currentUser = authenticationService.login(credentials);
 				accountService.setAuthenticatedUser(currentUser);
 			} catch (AuthenticationServiceException e) {
-				System.out.println("LOGIN ERROR: "+e.getMessage());
+				System.out.println("LOGIN ERROR: incorrect username/password.");
 				System.out.println("Please attempt to login again.");
 			}
 		}

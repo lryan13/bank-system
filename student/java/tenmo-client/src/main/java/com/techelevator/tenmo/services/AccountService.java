@@ -106,11 +106,13 @@ public class AccountService {
     public User[] printRecipients() {
         String path = this.baseUrl + "account/user/list";
         ResponseEntity<User[]> response = restTemplate.exchange(path, HttpMethod.GET, makeAuthEntity(), User[].class);
+        System.out.println("************************************\n" + "Users\n" + "ID            Name\n" + "************************************");
         for(User user: response.getBody()) {
             if (!user.getUsername().equals(this.user.getUser().getUsername())) {
-                System.out.println("Username: " + user.getUsername() + " User Id: " + user.getId());
+                System.out.println(user.getId() + "          " + user.getUsername());
             }
         }
+        System.out.println("***********\n");
         return response.getBody();
     }
 

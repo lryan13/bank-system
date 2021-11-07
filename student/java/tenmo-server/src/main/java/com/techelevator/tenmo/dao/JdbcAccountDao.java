@@ -32,10 +32,8 @@ public class JdbcAccountDao implements AccountDao{
             return id;
         }
         else{
-
             throw new UsernameNotFoundException("User " + user_id + " was not found.");
         }
-
     }
 
     @Override
@@ -66,22 +64,27 @@ public class JdbcAccountDao implements AccountDao{
 
     //TODO refactor with transferId, remove subqueries, combine methods
     @Override
-    public void updateSenderAccount(Long account_id) {
+    public void updateFirstAccount(Long transfer_id, Long account_id) {
         jdbcTemplate.execute("BEGIN TRANSACTION");
         String sql = "UPDATE accounts SET balance = balance - " +
-                "(SELECT amount FROM transfers ORDER BY transfer_id DESC LIMIT 1) WHERE account_id = ?; ";
-        jdbcTemplate.update(sql, account_id);
+                "(SELECT amount FROM transfers WHERE transfer_id = ?) WHERE account_id = ?; ";
+        jdbcTemplate.update(sql, transfer_id, account_id);
         jdbcTemplate.execute("COMMIT");
     }
 
     @Override
-    public void updateRecipientAccount(Long account_id) {
+    public void updateSecondAccount(Long transfer_id, Long account_id) {
         jdbcTemplate.execute("BEGIN TRANSACTION");
         String sql = "UPDATE accounts SET balance = balance + " +
-                "(SELECT amount FROM transfers ORDER BY transfer_id DESC LIMIT 1) WHERE account_id = ?; ";
-
-        jdbcTemplate.update(sql, account_id);
+                "(SELECT amount FROM transfers WHERE transfer_id = ?) WHERE account_id = ?; ";
+        jdbcTemplate.update(sql, transfer_id, account_id);
         jdbcTemplate.execute("COMMIT");
+    }
+
+    @Override
+    public void update(Long transfer_id, Long account_from, Long account_to){
+        updateFirstAccount(transfer_id, account_from);
+        updateSecondAccount(transfer_id, account_to);
     }
 
 
@@ -92,5 +95,4 @@ public class JdbcAccountDao implements AccountDao{
         account.setBalance(rowSet.getBigDecimal("balance"));
         return account;
     }
-    //TODO make an update balancce w sql, param for id and amt/add/subtract
 }
